@@ -1,0 +1,72 @@
+.training-summary {
+  li {
+    display: flex;
+  }
+
+  .icon-button {
+    margin: 0 1em;
+    font-size: 100%;
+    font-family: inherit;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    outline: inherit;
+  }
+  .informations {
+    width: 100%;
+    text-align: center;
+    font-style: italic;
+  }
+}
+
+.training-form {
+  .training-form-choices {
+    display: flex;
+    flex-direction: column;
+    padding: 1em 2em;
+
+    .radio-virtual-training {
+      padding-left: 1em;
+    }
+  }
+
+  .training-submit {
+    background: #4bac95;
+    padding: 0.5em 1em;
+    color: white;
+  }
+}
+
+.training-title {
+  border-bottom: 1px solid #178f96;
+}
+
+.training-users-registered {
+  display: flex;
+  flex-direction: column;
+}
+
+.training-widget {
+  margin-right: 2em;
+
+  .training-widget-sessions {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3em;
+    box-shadow: 4px 3px 5px -6px rgba(0, 0, 0, 0.75);
+
+    .information-container {
+      padding: 1em 0.5em;
+    }
+  }
+
+  .training-link-content {
+    display: flex;
+    justify-content: center;
+    color: #4bac95;
+    padding: 0.5em 0;
+  }
+
+  ul {
+    list-style: none;
+  }
+}

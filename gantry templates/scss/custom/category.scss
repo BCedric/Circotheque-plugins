@@ -1,0 +1,37 @@
+//------------category -----------------------
+#category-content {
+  .category-post {
+    padding: 1em;
+    margin: 0.5em 0;
+    width: 100%;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+
+    .post-img-container {
+      display: flex;
+      justify-content: center;
+
+      img {
+        border: 1px solid black;
+        max-width: 50%;
+      }
+    }
+  }
+
+  .category-post:hover {
+    opacity: 1;
+  }
+
+  .category-post-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .category-post-link:not(:last-child) .category-post-container::after {
+    display: block;
+    content: '';
+    width: 70%;
+    border-bottom: 1px solid black;
+  }
+}

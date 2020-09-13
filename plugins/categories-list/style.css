@@ -1,0 +1,44 @@
+.categories-list {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.categories-list-content > h2 {
+  border-bottom: 1px solid #178f96;
+}
+
+.categories-list .category {
+  flex: 1;
+  margin: 1em;
+  min-width: 300px;
+  max-width: 400px;
+  border-radius: 4px;
+  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+    0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+  box-sizing: border-box;
+}
+
+.category .category.empty {
+  display: none;
+}
+
+.category .title {
+  padding: 1em;
+  margin: 0;
+}
+
+.categories-list .category img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.category .description p {
+  margin: 1em;
+  max-height: 200px;
+  position: relative;
+  height: 4.6em; /* exactly three lines */
+  overflow: hidden;
+}

@@ -1,0 +1,30 @@
+.training-title {
+  border-bottom: 1px solid #178f96;
+}
+
+.training-users-registered {
+  display: flex;
+  flex-direction: column;
+}
+.training-admin-summary {
+  display: flex;
+  flex-wrap: wrap;
+}
+.training-admin-summary .training-item {
+  border: 1px solid black;
+  border-radius: 0.3em;
+  margin: 0.5em;
+  padding: 0.5em 1em;
+}
+
+.training-admin-form .session-training .dashicons-trash {
+  cursor: pointer;
+}
+
+.training-admin-form .form-field {
+  margin-bottom: 0.5em;
+}
+
+.training-admin-form .form-field input {
+  max-width: 200px;
+}
