@@ -57,7 +57,7 @@ class Training_Plugin
         $user = wp_get_current_user();
         $userId = $user->data->ID;
         $user_trainings = array_filter($this->db->get_user_trainings($userId), function ($training) {
-            return new DateTime($training->date) > new DateTime();
+            return new DateTime("$training->date $training->endTime") >= new DateTime();
         });
 
         ob_start();
