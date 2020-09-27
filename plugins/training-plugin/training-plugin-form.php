@@ -2,6 +2,7 @@
 
 require_once('training-plugin-DB.php');
 require_once('training-plugin-utils.php');
+require_once('training-plugin-user-meta-manager.php');
 
 class Training_Plugin_Form
 {
@@ -23,8 +24,13 @@ class Training_Plugin_Form
 
     public function user_training_form()
     {
-        $dates = [];
+        date_default_timezone_set("Europe/Paris");
+        $user_meta_manager = new Training_Plugin_User_Meta_Manager(get_current_user_id());
+        if ($user_meta_manager->is_user_suspended()) {
+            return $this->training_suspended_template($user_meta_manager->get_suspended_until());
+        }
 
+        $dates = [];
         foreach ($this->days as $key => $day) {
             $date = new DateTime();
             $date->modify("next {$key}");
@@ -32,6 +38,7 @@ class Training_Plugin_Form
             $date->modify('+7 days');
             $dates[$date->format('Y-m-d')] = ['rawDate' => $date->format(DateTime::ATOM), 'day' => $key, 'label' => $day['label']];
         }
+
         ksort($dates);
 
         if (key_exists('user-training-form', $_POST)) {
@@ -53,7 +60,7 @@ class Training_Plugin_Form
                     foreach ($dates as $strDate => $date) {
                         $sessions = $this->db->get_sessions_training_by_day($date['day']);
                         foreach ($sessions as $key => $session) {
-                            if (!$this->is_user_already_register($date, $session) && !$this->is_limit_reached($date, $session)) {
+                            if (!$this->is_user_already_register($date, $session) && !$this->is_limit_reached($date, $session) && !$this->is_session_in_less_than_24h($date, $session)) {
                                 setlocale(LC_ALL, 'fr_FR.utf8');
                                 $datetime = new DateTime($date['rawDate']);
                                 $startDateTime = new DateTime($session->startTime);
@@ -90,7 +97,7 @@ class Training_Plugin_Form
                     }
                 });
             </script>
-<?php
+        <?php
         }
         return ob_get_clean();
     }
@@ -123,6 +130,17 @@ class Training_Plugin_Form
         return count($trainingsFiltered) >= $limit;
     }
 
+    public function is_session_in_less_than_24h($date, $session)
+    {
+        $strDate = $date['rawDate'];
+        $time = explode(':', $session->startTime);
+        $rawDateTime = new DateTime($strDate);
+        $rawDateTime->setTime($time[0], $time[1]);
+        $tomorrow = new DateTime();
+        $tomorrow->add(new DateInterval(('P1DT2H')));
+        return $tomorrow > $rawDateTime;
+    }
+
     public function save_form($dates)
     {
         $userId = get_current_user_id();
@@ -132,5 +150,17 @@ class Training_Plugin_Form
             $this->db->save_training($userId, $session_id, $date, $visio);
         }
         wp_redirect(get_permalink());
+    }
+
+    public function training_suspended_template(\Datetime $training_suspended_datetime)
+    {
+        ob_start();
+        ?>
+        <h3 class="training-title">Inscription pour les séances à venir:</h3>
+        <div class="information-container">
+            <span>Vous vous êtes désisté au dernier moment sur trois séances. Vous n'êtes donc plus autorisé à réserver un nouveau créneau jusqu'au <?php echo $training_suspended_datetime->format('d/m') ?></span>
+        </div>
+<?php
+        return ob_get_clean();
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+require_once('training-plugin-user-meta-manager.php');
+
 class Training_Plugin_Admin
 {
     private $days = [
@@ -21,6 +23,7 @@ class Training_Plugin_Admin
     {
         add_menu_page('Training', 'Training', 'manage_options', 'training', array($this, 'menu_html'));
         add_submenu_page('training', 'Réglages', 'Réglages', 'manage_options', 'settings', array($this, 'settings_html'));
+        add_submenu_page('training', 'Désistements', 'Désistements', 'manage_options', 'abandonments', array($this, 'abandonment_html'));
     }
 
     public function register_options()
@@ -31,6 +34,7 @@ class Training_Plugin_Admin
 
     public function menu_html()
     {
+        date_default_timezone_set("Europe/Paris");
         echo '<h1>' . get_admin_page_title() . '</h1>';
         $trainings = $this->db->get_trainings_with_users();
 
@@ -235,5 +239,49 @@ class Training_Plugin_Admin
             </form> <?php
                 }
             }
-            // }
+
+            public function abandonment_html()
+            {
+                date_default_timezone_set("Europe/Paris");
+                echo '<h1>' . get_admin_page_title() . '</h1>';
+                if (key_exists('submit', $_POST)) {
+                    $userId = $_POST['user_abandonment'];
+                    $user = get_user_by('ID', $userId);
+                    $this->send_abandonment_email($user->user_email);
+                    $user_meta_manager = new Training_Plugin_User_Meta_Manager($userId);
+                    $user_meta_manager->user_abandonment();
+                    ?>
+            <p>
+                L'email a bien été envoyé à l'utilisateur.
+            </p>
+        <?php
+                } else {
+                    $users = get_users();
+        ?>
+            <p>
+                Lorsqu'une personne n'est pas venue à une séance vous pouvez lui enlever une "chance" en la selectionnant et en validant le formulaire ci-dessous. Un email lui sera envoyé.
+            </p>
+            <form method="post" action="">
+                <label for="user">Utilisateur : </label>
+                <select id="user" name="user_abandonment">
+                    <?php
+                    foreach ($users as $user) {
+                        echo "<option value='{$user->ID}' >{$user->display_name}</option>";
+                    }
+                    ?>
+                </select>
+                <?php submit_button(); ?>
+            </form>
+<?php
+                }
+            }
+
+
+            public function send_abandonment_email($user_email)
+            {
+                $headers = array('Content-Type: text/html; charset=UTF-8');
+                $email_content =
+                    file_get_contents(get_site_url() . '/wp-content/plugins/training-plugin/training-plugin-abandonment-mail-template.php');
+                wp_mail($user_email, "[Circothèque] Désistement tardif", $email_content, $headers);
+            }
         }

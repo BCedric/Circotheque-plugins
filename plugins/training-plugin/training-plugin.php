@@ -9,6 +9,7 @@ require_once('training-plugin-form.php');
 require_once('training-plugin-DB.php');
 require_once('training-plugin-widget.php');
 require_once('training-plugin-utils.php');
+require_once('training-plugin-user-meta-manager.php');
 
 
 class Training_Plugin
@@ -49,13 +50,18 @@ class Training_Plugin
 
     public function user_training()
     {
+        date_default_timezone_set("Europe/Paris");
+        $userId = get_current_user_id();
+        $user_meta_manager = new Training_Plugin_User_Meta_Manager($userId);
 
         if (key_exists('delete_training', $_POST)) {
             $this->db->delete_training($_POST['delete_training']);
+            if ($_POST['add_training_abandonment'] === '1') {
+                $user_meta_manager->user_abandonment();
+            }
+            wp_redirect(get_permalink());
         }
 
-        $user = wp_get_current_user();
-        $userId = $user->data->ID;
         $user_trainings = array_filter($this->db->get_user_trainings($userId), function ($training) {
             return new DateTime("$training->date $training->endTime") >= new DateTime();
         });
@@ -73,9 +79,11 @@ class Training_Plugin
 
                         <ul>
                             <?php
-                            foreach ($user_trainings as $key => $training) {
+                            foreach ($user_trainings as $training) {
                                 $startDatetime = new DateTime("{$training->date} {$training->startTime}");
                                 $endDatetime = new DateTime("{$training->date} {$training->endTime}");
+                                $isMore24hoursBefore = $user_meta_manager->is_abandonment_suspandable($startDatetime);
+
                             ?>
 
                                 <li><span><?php echo "{$training->type}: Le {$startDatetime->format('d/m')} de {$startDatetime->format('G\hi')} à {$endDatetime->format('G\hi')}" ?>
@@ -84,8 +92,9 @@ class Training_Plugin
                                             echo " ({$visioLabel})";
                                         } ?>
                                     </span>
-                                    <form method="POST" action="" onsubmit="return confirm('Confirmer la désinscription');">
+                                    <form method="POST" action="" onsubmit="return getConfirm(<?php echo $isMore24hoursBefore ?>)">
                                         <input type="hidden" name="delete_training" value="<?php echo $training->id ?>" />
+                                        <input type="hidden" name="add_training_abandonment" value="<?php echo $isMore24hoursBefore ?>" />
                                         <button type="submit" class="icon-button"><span class="dashicons dashicons-trash"></span></button>
                                     </form>
                                 </li>
@@ -100,6 +109,19 @@ class Training_Plugin
 
                     ?>
                 </div>
+                <script type="text/javascript">
+                    function getConfirm(isMore24hoursBefore) {
+                        const trainingAbandonmentNumber = <?php echo $user_meta_manager->get_training_abandonment_number(); ?>;
+                        if (isMore24hoursBefore) {
+                            const message = "Attention vous voulez vous désinscrire d'un cours qui est dans moins de 24h. Au bout de trois désistements dans ces conditions, vous ne pourrez plus accéder aux séances de training pendant une semaine"
+                            if (trainingAbandonmentNumber > 0) {
+                                return confirm(`${message}. Vous vous êtes déjà désisté ${trainingAbandonmentNumber} fois au dernier moment.`)
+                            }
+                            return confirm(message)
+                        }
+                        return confirm('Confirmer la désinscription')
+                    }
+                </script>
             <?php
             } else {
             ?>
